@@ -8,14 +8,30 @@ import {
   StyleSheet,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import TaskPopup from '../components/TaskPopup';
 
 const MainScreen = () => {
   const [todo, setTodo] = useState('');
   const [todos, setTodos] = useState([]);
+  const [isPopupVisible, setIsPopupVisible] = useState(false);
+  const [currentTaskIndex, setCurrentTaskIndex] = useState(0);
+  const [intervalTime, setIntervalTime] = useState('5');
+  const [activeInterval, setActiveInterval] = useState('5');
 
   useEffect(() => {
     loadTodos();
   }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (todos.length > 0) {
+        setIsPopupVisible(true);
+        setCurrentTaskIndex((prevIndex) => (prevIndex + 1) % todos.length);
+      }
+    }, parseInt(activeInterval) * 1000);
+
+    return () => clearInterval(interval);
+  }, [todos, activeInterval]);
 
   const loadTodos = async () => {
     try {
@@ -51,8 +67,22 @@ const MainScreen = () => {
     }
   };
 
+  const handleIntervalSubmit = () => {
+    const newInterval = parseInt(intervalTime);
+    if (!isNaN(newInterval) && newInterval > 0) {
+      setActiveInterval(intervalTime);
+    } else {
+      setIntervalTime(activeInterval);
+    }
+  };
+
   return (
     <View style={styles.container}>
+      <TaskPopup
+        visible={isPopupVisible}
+        title={todos[currentTaskIndex]?.text || ''}
+        onDismiss={() => setIsPopupVisible(false)}
+      />
       <Text style={styles.title}>Todo List</Text>
       <View style={styles.inputContainer}>
         <TextInput
@@ -80,6 +110,22 @@ const MainScreen = () => {
           </View>
         )}
       />
+      <View style={styles.timerContainer}>
+        <Text style={styles.timerLabel}>Popup Interval (seconds):</Text>
+        <TextInput
+          style={styles.timerInput}
+          value={intervalTime}
+          onChangeText={setIntervalTime}
+          keyboardType="numeric"
+          placeholder="Enter seconds"
+        />
+        <TouchableOpacity 
+          style={styles.timerSubmitButton}
+          onPress={handleIntervalSubmit}
+        >
+          <Text style={styles.timerSubmitText}>Apply</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
@@ -140,6 +186,42 @@ const styles = StyleSheet.create({
   deleteButtonText: {
     color: '#fff',
     fontSize: 12,
+  },
+  timerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 15,
+    borderTopWidth: 1,
+    borderTopColor: '#E0E0E0',
+    marginTop: 'auto',
+  },
+  timerLabel: {
+    fontSize: 16,
+    marginRight: 10,
+    color: '#333',
+    flex: 1,
+  },
+  timerInput: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    width: 80,
+    fontSize: 16,
+    textAlign: 'center',
+    marginRight: 10,
+  },
+  timerSubmitButton: {
+    backgroundColor: '#007AFF',
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    borderRadius: 5,
+  },
+  timerSubmitText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
   },
 });
 
