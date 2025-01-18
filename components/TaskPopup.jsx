@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -6,14 +6,29 @@ import {
   Modal,
   StyleSheet,
   Dimensions,
+  Animated,
 } from 'react-native';
 
 const TaskPopup = ({ visible, title, onDismiss }) => {
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (visible) {
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    } else {
+      fadeAnim.setValue(0);
+    }
+  }, [visible]);
+
   return (
     <Modal
       transparent
       visible={visible}
-      animationType="fade"
+      animationType="none"
       onRequestClose={onDismiss}
     >
       <TouchableOpacity 
@@ -21,14 +36,14 @@ const TaskPopup = ({ visible, title, onDismiss }) => {
         activeOpacity={1}
         onPress={onDismiss}
       >
-        <View style={styles.popup}>
+        <Animated.View style={[styles.popup, { opacity: fadeAnim }]}>
           <View style={styles.header}>
             <Text style={styles.headerText}>Reminder</Text>
           </View>
           <View style={styles.content}>
             <Text style={styles.title}>{title}</Text>
           </View>
-        </View>
+        </Animated.View>
       </TouchableOpacity>
     </Modal>
   );
@@ -38,13 +53,12 @@ const styles = StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: 'transparent',
-    justifyContent: 'center',
     alignItems: 'center',
   },
   popup: {
     backgroundColor: '#FFFFFF',
     borderRadius: 20,
-    width: Dimensions.get('window').width * 0.85,
+    width: Dimensions.get('window').width * 0.95,
     maxWidth: 400,
     shadowColor: '#000',
     shadowOffset: {
@@ -55,6 +69,7 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 8,
     overflow: 'hidden',
+    marginTop: 10,
   },
   header: {
     backgroundColor: '#007AFF',
