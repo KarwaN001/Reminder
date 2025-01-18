@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,20 +7,48 @@ import {
   FlatList,
   StyleSheet,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const MainScreen = () => {
   const [todo, setTodo] = useState('');
   const [todos, setTodos] = useState([]);
 
-  const handleAddTodo = () => {
-    if (todo.trim().length > 0) {
-      setTodos([...todos, { id: Date.now().toString(), text: todo }]);
-      setTodo('');
+  useEffect(() => {
+    loadTodos();
+  }, []);
+
+  const loadTodos = async () => {
+    try {
+      const storedTodos = await AsyncStorage.getItem('todos');
+      if (storedTodos !== null) {
+        setTodos(JSON.parse(storedTodos));
+      }
+    } catch (error) {
+      console.error('Error loading todos:', error);
     }
   };
 
-  const handleDeleteTodo = (id) => {
-    setTodos(todos.filter(item => item.id !== id));
+  const handleAddTodo = async () => {
+    if (todo.trim().length > 0) {
+      const newTodos = [...todos, { id: Date.now().toString(), text: todo }];
+      setTodos(newTodos);
+      setTodo('');
+      try {
+        await AsyncStorage.setItem('todos', JSON.stringify(newTodos));
+      } catch (error) {
+        console.error('Error saving todo:', error);
+      }
+    }
+  };
+
+  const handleDeleteTodo = async (id) => {
+    const newTodos = todos.filter(item => item.id !== id);
+    setTodos(newTodos);
+    try {
+      await AsyncStorage.setItem('todos', JSON.stringify(newTodos));
+    } catch (error) {
+      console.error('Error deleting todo:', error);
+    }
   };
 
   return (
