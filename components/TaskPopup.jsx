@@ -18,7 +18,7 @@ const TaskPopup = ({ visible, title, onDismiss }) => {
     >
       <TouchableOpacity 
         style={styles.overlay}
-        activeOpacity={0.9}
+        activeOpacity={1}
         onPress={onDismiss}
       >
         <View style={styles.popup}>
@@ -27,7 +27,6 @@ const TaskPopup = ({ visible, title, onDismiss }) => {
           </View>
           <View style={styles.content}>
             <Text style={styles.title}>{title}</Text>
-           
           </View>
         </View>
       </TouchableOpacity>
@@ -38,7 +37,7 @@ const TaskPopup = ({ visible, title, onDismiss }) => {
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    backgroundColor: 'transparent',
     justifyContent: 'center',
     alignItems: 'center',
   },
